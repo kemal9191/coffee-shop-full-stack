@@ -199,4 +199,4 @@ def auth_error(error):
 
 if __name__ == "__main__":
     app.debug = True
-    app.run()
+    app.run(ssl_context='adhoc')
