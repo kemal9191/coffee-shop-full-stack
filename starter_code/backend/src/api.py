@@ -47,7 +47,7 @@ Fetches all available drinks in detail
 '''
 @app.route('/drinks-detail')
 @requires_auth('get:drinks-detail')
-def drinks_detail(jwt):
+def drinks_detail(payload):
     drinks_data = Drink.query.all()
 
     if len(drinks_data)==0:
@@ -65,13 +65,14 @@ Creates a new drink and pushes it into db
 '''
 @app.route('/drinks', methods=['POST'])
 @requires_auth('post:drinks')
-def create_drink(jwt):
+def create_drink(payload):
     raw_data = request.get_json()
     title = raw_data['title']
     recipe = raw_data['recipe']
+    
+    drink = Drink(title=title, recipe=json.dumps(recipe))
 
     try:
-        drink = Drink(title=title, recipe=json.dumps(recipe))
         drink.insert()
     except Exception:
         print(str(Exception))
@@ -88,35 +89,41 @@ Fetches a drink, and pushes it into db after updating requested parts
 '''
 @app.route('/drinks/<int:id>', methods=['PATCH'])
 @requires_auth('patch:drinks')
-def update_drinks(jwt, id):
+def update_drinks(payload, id):
     raw_data = request.get_json()
-    title = raw_data['title']
-    recipe = raw_data['recipe']
+    drink_to_update = Drink.query.filter(Drink.id==id).one_or_none()
 
-    drink_to_update = Drink.query.get(id)
-
-    if drink_to_update is None:
+    if not drink_to_update :
         abort(404)
 
     try:
-        drink_to_update['title'] = title
-        drink_to_update['recipe'] = json.dumps(recipe)
+        title = raw_data.get('title', None)
+        recipe = raw_data.get('recipe', None)
+
+        if title:
+            drink_to_update.title = title
+        if recipe:
+            drink_to_update.recipe = json.dumps(raw_data['recipe'])
+
         drink_to_update.update()
+
+        drinks = [drink_to_update.long()]
+        return jsonify({
+        "success": True,
+        "drinks": drinks
+    }), 200
+    
     except Exception:
         print(str(Exception))
         abort(422)
     
-    return jsonify({
-        "success": True,
-        "drink": drink_to_update.long()
-    }), 200
 
 '''
 Deletes the drink
 '''
 @app.route('/drinks/<int:id>', methods=['DELETE'])
 @requires_auth('delete:drinks')
-def delete_drink(jwt, id):
+def delete_drink(payload, id):
     drink_to_delete = Drink.query.get(id)
 
     if drink_to_delete is None:

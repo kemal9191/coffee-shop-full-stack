@@ -8,9 +8,9 @@ from urllib.request import urlopen
 import rsa
 
 
-AUTH0_DOMAIN = 'dev-zcohrtwi.us.auth0.com'
+AUTH0_DOMAIN = 'dev-eoxed4z8.us.auth0.com'
 ALGORITHMS = ['RS256']
-API_AUDIENCE = 'image'
+API_AUDIENCE = 'coffee'
 
     ## AuthError Exception
 
